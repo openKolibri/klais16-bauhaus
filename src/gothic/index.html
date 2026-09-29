@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LUX SEDECIM</title>
+<style>
+  :root { color-scheme: dark; }
+  html, body { margin: 0; height: 100%; background: #000; overflow: hidden; }
+  body { display: flex; align-items: center; justify-content: center; font: 14px ui-monospace, Menlo, Consolas, monospace; color: #c8262a; }
+  #stage { position: relative; width: min(100vw, calc(100vh * 16 / 9)); aspect-ratio: 16 / 9; }
+  canvas#c { width: 100%; height: 100%; display: block; }
+  #play { position: absolute; inset: 0; display: grid; place-items: center; background: rgba(0,0,0,.72); cursor: pointer; border: 0; color: inherit; font: inherit; }
+  #play span { border: 2px solid #c8262a; padding: 14px 26px; letter-spacing: .2em; text-transform: uppercase; }
+  body.render #play, body.render #bar { display: none; }
+  #bar { position: absolute; left: 0; right: 0; bottom: 0; height: 4px; background: #2a060866; }
+  #bar i { display: block; height: 100%; width: 0; background: #c8262a; }
+</style>
+</head>
+<body>
+<div id="stage">
+  <canvas id="c" width="1920" height="1080"></canvas>
+  <button id="play"><span>press to play &nbsp;▸&nbsp; sound on</span></button>
+  <div id="bar"><i></i></div>
+</div>
+<audio id="a" src="../../build/gothic/track.wav" preload="auto"></audio>
+<script type="module" src="./main.js"></script>
+</body>
+</html>

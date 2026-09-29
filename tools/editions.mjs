@@ -19,11 +19,12 @@ export const EDITIONS = {
     page: 'src/gothic/index.html',
     buildDir: 'build/gothic',
     out: 'dist/klais16-gothic.mp4',
-    sync: [16.2, 19.8],
+    sync: [17.2, 22.8],   // the nave: every kick launches a bright wave down the ribs
     beatlock: [16, 24],
     // dark, smooth red gradients: variance-adaptive quantisation that favours dark areas keeps them from banding
     tune: '',
-    x264: 'aq-mode=3:aq-strength=0.9:deblock=-1,-1',
+    crf: '22',
+    x264: 'aq-mode=3:aq-strength=0.9:deblock=-1,-1:chroma-qp-offset=-2',   // a red picture lives in its chroma: give it more bits
   },
 };
 

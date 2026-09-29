@@ -16,7 +16,7 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
 const ed = edition();
 const arg = (k, d) => { const i = process.argv.indexOf('--' + k); return i > 0 ? process.argv[i + 1] : d; };
-const FPS = Number(arg('fps', 30)), WORKERS = Number(arg('workers', 4)), CRF = arg('crf', '23'), PRESET = arg('preset', 'slow'), MAXRATE = arg('maxrate', '8M');
+const FPS = Number(arg('fps', 30)), WORKERS = Number(arg('workers', 4)), CRF = arg('crf', ed.crf || '23'), PRESET = arg('preset', 'slow'), MAXRATE = arg('maxrate', '8M');
 const OUT = path.resolve(root, arg('out', ed.out));
 const PAGE_QS = 'render=1' + (arg('scanlines', '0') === '1' ? '&scan=1' : '');
 const cues = JSON.parse(readFileSync(path.join(root, ed.buildDir, 'cues.json'), 'utf8'));
