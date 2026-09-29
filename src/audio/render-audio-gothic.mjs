@@ -96,6 +96,8 @@ tr.cel.mul(duckLight);
 tr.toll.mul(duckLight);
 tr.atmo.mul(duckLight);
 
+// the effects bus (risers, crashes, impacts): keep its top end out of the ears
+filtBus(tr.fx, biquad('lp', 9500, 0.7));
 // bass: a little grit, mono below the mids
 for (let i = 0; i < N; i++) { const v = Math.tanh(1.4 * tr.bass.L[i]) / 1.05; tr.bass.L[i] = tr.bass.R[i] = v; }
 filtBus(tr.bass, biquad('hp', 42, 0.7));

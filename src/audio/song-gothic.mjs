@@ -266,16 +266,16 @@ export function compose(tr) {
   };
   const back = (bar, midi, vel = 0.7, dur = 2.4) => V.bell(tr.fx, t(bar), midi, vel, { reverse: true, dur, size: 1.2, bright: 0.8 });
   back(4, N('E3'), 0.6, 1.8); hit(8, 0.6, false);
-  V.riser(tr.fx, t(14), 2 * BAR - STEP, { gain: 0.5, tone: 0.05 }); ev.riser.push([t(14), 2 * BAR]);
+  V.riser(tr.fx, t(14), 2 * BAR - STEP, { gain: 0.3, tone: 0.05, f1: 7500, q1: 3 }); ev.riser.push([t(14), 2 * BAR]);
   back(16, N('E3'), 0.9, 2.0); hit(16, 1);
-  V.riser(tr.fx, t(28), 4 * BAR - STEP, { gain: 0.3, f0: 400, f1: 7000, curve: 2 }); ev.riser.push([t(28), 4 * BAR]);
+  V.riser(tr.fx, t(28), 4 * BAR - STEP, { gain: 0.2, f0: 400, f1: 6500, curve: 2, q1: 3 }); ev.riser.push([t(28), 4 * BAR]);
   hit(32, 0.6, false);
-  V.riser(tr.fx, t(36), 4 * BAR - STEP, { gain: 0.75, f0: 200, f1: 11000, tone: 0.08 }); ev.riser.push([t(36), 4 * BAR]);
+  V.riser(tr.fx, t(36), 4 * BAR - STEP, { gain: 0.36, f0: 200, f1: 8500, tone: 0.08, q1: 3 }); ev.riser.push([t(36), 4 * BAR]);
   V.organ(tr.fx, t(36), 4 * BAR - STEP, [N('E3'), N('B3'), N('E4'), N('G4'), N('B4')], { gain: 0.7, att: 3.6, rel: 0.05, lp: [300, 7000], stops: 'full', trem: 0.08 });
   back(40, N('B3'), 1.0, 2.6); hit(40, 1.15);
-  V.riser(tr.fx, t(46), 2 * BAR - STEP, { gain: 0.5, tone: 0.05 }); ev.riser.push([t(46), 2 * BAR]);
+  V.riser(tr.fx, t(46), 2 * BAR - STEP, { gain: 0.3, tone: 0.05, f1: 7500, q1: 3 }); ev.riser.push([t(46), 2 * BAR]);
   hit(48, 0.6, false);
-  V.riser(tr.fx, t(54), 2 * BAR - STEP, { gain: 0.5, tone: 0.05 }); ev.riser.push([t(54), 2 * BAR]);
+  V.riser(tr.fx, t(54), 2 * BAR - STEP, { gain: 0.3, tone: 0.05, f1: 7500, q1: 3 }); ev.riser.push([t(54), 2 * BAR]);
   hit(56, 0.9);
   V.impact(tr.fx, t(64), 1.1, { decay: 1.6 }); ev.impact.push([t(64), 1.1]);
 
