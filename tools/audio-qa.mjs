@@ -1,6 +1,8 @@
-// Objective sanity checks for build/track.wav + build/cues.json
+// Objective sanity checks for <dir>/track.wav + <dir>/cues.json:   node tools/audio-qa.mjs [--edition gothic] [dir]
 import { readFileSync } from 'node:fs';
-const dir = process.argv[2] || 'build';
+import { edition } from './editions.mjs';
+const ed = edition();
+const dir = ed.args[0] || ed.buildDir;
 const wav = readFileSync(`${dir}/track.wav`);
 const n = (wav.length - 44) / 4, L = new Float32Array(n), R = new Float32Array(n);
 for (let i = 0; i < n; i++) { L[i] = wav.readInt16LE(44 + i * 4) / 32768; R[i] = wav.readInt16LE(46 + i * 4) / 32768; }
@@ -25,7 +27,7 @@ for (const s of cues.sections) {
   console.log(row);
 }
 // beat-lock check: energy of the lowest band at kick times vs between
-const t0 = 16 * cues.bar, t1 = 24 * cues.bar; let on = 0, off = 0, c = 0;
+const t0 = ed.beatlock[0] * cues.bar, t1 = ed.beatlock[1] * cues.bar; let on = 0, off = 0, c = 0;
 for (let tt = t0; tt < t1; tt += cues.step * 4) {
   const f = Math.round(tt * sp.hz), fo = Math.round((tt + cues.step * 2) * sp.hz);
   on += data[(f + 2) * sp.bands + 1]; off += data[fo * sp.bands + 1]; c++;

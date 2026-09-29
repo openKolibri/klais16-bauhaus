@@ -1,35 +1,37 @@
 // Renders the video: N headless-Chromium pages draw frames in parallel (pure function of time), an ordered queue feeds
 // them to ffmpeg as a PNG stream, and ffmpeg muxes them with build/track.wav into an H.264 + AAC mp4.
 //
-//   node tools/render-video.mjs [--fps 30] [--workers 4] [--out dist/klais16-bauhaus.mp4] [--crf 21] [--preset slow]
-//                               [--start 0] [--end 118.2]      (seconds; handy for quick test renders)
+//   node tools/render-video.mjs [--edition bauhaus|gothic] [--fps 30] [--workers 4] [--out dist/klais16-bauhaus.mp4]
+//                               [--crf 23] [--preset slow] [--maxrate 8M] [--start 0] [--end 118.2]
+//   (start/end in seconds are handy for quick test renders)
 import { spawn } from 'node:child_process';
 import { readFileSync, mkdirSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { serve } from './serve.mjs';
-
+import { edition } from './editions.mjs';
 import { loadPlaywright } from './playwright.mjs';
 const { chromium } = loadPlaywright();
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
+const ed = edition();
 const arg = (k, d) => { const i = process.argv.indexOf('--' + k); return i > 0 ? process.argv[i + 1] : d; };
 const FPS = Number(arg('fps', 30)), WORKERS = Number(arg('workers', 4)), CRF = arg('crf', '23'), PRESET = arg('preset', 'slow'), MAXRATE = arg('maxrate', '8M');
-const OUT = path.resolve(root, arg('out', 'dist/klais16-bauhaus.mp4'));
+const OUT = path.resolve(root, arg('out', ed.out));
 const PAGE_QS = 'render=1' + (arg('scanlines', '0') === '1' ? '&scan=1' : '');
-const cues = JSON.parse(readFileSync(path.join(root, 'build/cues.json'), 'utf8'));
+const cues = JSON.parse(readFileSync(path.join(root, ed.buildDir, 'cues.json'), 'utf8'));
 const START = Number(arg('start', 0)), END = Math.min(Number(arg('end', cues.duration)), cues.duration);
 const f0 = Math.round(START * FPS), f1 = Math.ceil(END * FPS), TOTAL = f1 - f0;
 mkdirSync(path.dirname(OUT), { recursive: true });
 
-console.log(`render ${TOTAL} frames @ ${FPS} fps (${START.toFixed(2)}s..${END.toFixed(2)}s) with ${WORKERS} workers -> ${path.relative(root, OUT)}`);
+console.log(`[${ed.name}] render ${TOTAL} frames @ ${FPS} fps (${START.toFixed(2)}s..${END.toFixed(2)}s) with ${WORKERS} workers -> ${path.relative(root, OUT)}`);
 const srv = await serve(root);
 const browser = await chromium.launch({ args: ['--disable-gpu', '--force-color-profile=srgb', '--hide-scrollbars', '--disable-dev-shm-usage'] });
 const pages = [];
 for (let i = 0; i < WORKERS; i++) {
   const page = await browser.newPage({ viewport: { width: 1920, height: 1080 }, deviceScaleFactor: 1 });
   page.on('pageerror', (e) => console.error('[pageerror]', e.message));
-  await page.goto(`${srv.url}/src/render/index.html?${PAGE_QS}`);
+  await page.goto(`${srv.url}/${ed.page}?${PAGE_QS}`);
   await page.waitForFunction(() => window.__ready === true, null, { timeout: 60000 });
   pages.push(page);
 }
@@ -39,13 +41,13 @@ const ff = spawn(process.env.FFMPEG || 'ffmpeg', [
   '-y', '-hide_banner', '-loglevel', 'warning', '-nostats',
   '-f', 'image2pipe', '-framerate', String(FPS), '-c:v', 'png', '-i', '-',
   ...(START > 0 || END < cues.duration ? ['-ss', String(START), '-t', String(END - START)] : []),
-  '-i', path.join(root, 'build/track.wav'),
+  '-i', path.join(root, ed.buildDir, 'track.wav'),
   '-map', '0:v', '-map', '1:a',
   '-vf', 'scale=in_range=full:out_range=tv:out_color_matrix=bt709,format=yuv420p',
-  '-c:v', 'libx264', '-preset', PRESET, '-crf', CRF, '-maxrate', MAXRATE, '-bufsize', String(parseInt(MAXRATE) * 2) + 'M', '-tune', 'animation', '-profile:v', 'high', '-level', '4.2',
+  '-c:v', 'libx264', '-preset', PRESET, '-crf', CRF, '-maxrate', MAXRATE, '-bufsize', String(parseInt(MAXRATE) * 2) + 'M', ...(ed.tune ? ['-tune', ed.tune] : []), ...(ed.x264 ? ['-x264-params', ed.x264] : []), '-profile:v', 'high', '-level', '4.2',
   '-colorspace', 'bt709', '-color_primaries', 'bt709', '-color_trc', 'bt709', '-color_range', 'tv',
   '-c:a', 'aac', '-b:a', '192k', '-ar', '48000', '-shortest',
-  '-metadata', 'title=KLAIS-16 // SIXTEEN', '-metadata', 'artist=generated with Claude Code', '-metadata', 'comment=Dark techno x Bauhaus music video for github.com/openKolibri/klais-16',
+  '-metadata', `title=${ed.title}`, '-metadata', 'artist=generated with Claude Code', '-metadata', `comment=${ed.comment}`,
   '-movflags', '+faststart', OUT,
 ], { stdio: ['pipe', 'inherit', 'inherit'] });
 ff.stdin.on('error', () => {});

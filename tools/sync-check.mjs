@@ -1,14 +1,16 @@
-// Measures picture-vs-music timing in the finished mp4: during the first drop's wall (bars 16-20) the frame's brightness and
-// zoom pulse with every kick, so the cross-correlation between the video's per-frame luminance and the kick envelope from the
-// cue sheet should peak at a small lag. The renderer deliberately leads the audio by one frame (see src/render/main.js).
-//   node tools/sync-check.mjs dist/klais16-bauhaus.mp4
+// Measures picture-vs-music timing in the finished mp4: in the edition's sync window (see tools/editions.mjs) the frame's
+// brightness pulses with every kick, so the cross-correlation between the video's per-frame luminance and the kick envelope
+// from the cue sheet should peak at a small lag. The renderer deliberately leads the audio by one frame (see src/render/main.js).
+//   node tools/sync-check.mjs [--edition gothic] [file.mp4]
 import { spawn } from 'node:child_process';
 import { readFileSync } from 'node:fs';
+import { edition } from './editions.mjs';
 
-const file = process.argv[2] || 'dist/klais16-bauhaus.mp4', FPS = 30, W = 96, H = 54, FR = W * H;
-const cues = JSON.parse(readFileSync('build/cues.json', 'utf8'));
+const ed = edition();
+const file = ed.args[0] || ed.out, FPS = 30, W = 96, H = 54, FR = W * H;
+const cues = JSON.parse(readFileSync(`${ed.buildDir}/cues.json`, 'utf8'));
 const kicks = cues.events.kick.map((k) => k[0]);
-const t0 = 16.2 * cues.bar, t1 = 19.8 * cues.bar;                      // inside the wall scene, away from its cascade-in
+const t0 = ed.sync[0] * cues.bar, t1 = ed.sync[1] * cues.bar;          // a stretch where the picture pulses with every kick
 const ff = spawn(process.env.FFMPEG || 'ffmpeg', ['-v', 'error', '-ss', String(t0), '-t', String(t1 - t0), '-i', file, '-vf', `scale=${W}:${H}:flags=area,format=gray`, '-f', 'rawvideo', '-'], { stdio: ['ignore', 'pipe', 'inherit'] });
 let buf = Buffer.alloc(0); const Y = [];
 ff.stdout.on('data', (d) => { buf = Buffer.concat([buf, d]); while (buf.length >= FR) { let s = 0; for (let i = 0; i < FR; i++) s += buf[i]; Y.push(s / FR); buf = buf.subarray(FR); } });
